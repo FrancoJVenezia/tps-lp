@@ -35,16 +35,17 @@ def asignar_ids(arbol):
 
 # ---------------------------------------------------------------- generación (recorre el árbol)
 
-def generar_bloque(bloque, ids, avisar):
+def generar_bloque(bloque, ids, avisar, nivel=1):
+    sangria = '  ' * nivel   # el aviso de progreso respeta la profundidad del bloque
     if bloque['tipo'] == 'campo':
-        avisar(f"  campo {bloque['control']} '{bloque['atributos']['nombre']}'")
+        avisar(f"{sangria}campo {bloque['control']} '{bloque['atributos']['nombre']}'")
         return agente.generar_campo(bloque, ids[id(bloque)])
     if bloque['tipo'] == 'fila':
-        avisar('  fila')
-        hijos = ''.join(generar_bloque(c, ids, avisar) for c in bloque['campos'])
+        avisar(f'{sangria}fila')
+        hijos = ''.join(generar_bloque(c, ids, avisar, nivel + 1) for c in bloque['campos'])
         return agente.generar_fila().replace(agente.MARCA, hijos)
-    avisar(f"  sección '{bloque['titulo']}'")
-    hijos = ''.join(generar_bloque(e, ids, avisar) for e in bloque['elementos'])
+    avisar(f"{sangria}sección '{bloque['titulo']}'")
+    hijos = ''.join(generar_bloque(e, ids, avisar, nivel + 1) for e in bloque['elementos'])
     return agente.generar_seccion(bloque['titulo']).replace(agente.MARCA, hijos)
 
 
