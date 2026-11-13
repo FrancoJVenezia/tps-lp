@@ -235,28 +235,71 @@ def generar_formulario(titulo, metodo, ruta, tema):
 
 # ---------------------------------------------------------------- estilos (colores del tema)
 # La estructura de la card (espaciado, anchos, filas) es fija y la escribe el traductor.
-# El LLM interpreta la descripción del tema y genera solo los colores.
+# El color de las letras y las líneas también es fijo según el tema, para garantizar que se lea.
+# El LLM elige los FONDOS a partir de la descripción del tema, y se verifica que contrasten con esas letras.
 
-TEMAS = {
-    'claro':  'fondo de la página gris muy claro; la tarjeta blanca con texto gris oscuro; '
-              'campos con fondo blanco y borde gris claro; el botón gris oscuro con texto blanco',
-    'oscuro': 'fondo de la página casi negro; la tarjeta gris oscuro con texto claro; '
-              'campos con fondo gris un poco más claro que la tarjeta, texto claro y borde gris; el botón gris claro con texto oscuro',
-    'azul':   'fondo de la página celeste muy claro; la tarjeta blanca con texto gris oscuro; '
-              'el título y los legend en azul; campos con fondo blanco y borde azul claro; el botón azul con texto blanco',
+LETRAS_Y_LINEAS = {
+    #          texto      títulos    líneas     ayuda
+    'claro':  ('#1f1f1f', '#111111', '#4a4a4a', '#555555'),
+    'oscuro': ('#f2f2f2', '#ffffff', '#d9d9d9', '#c8c8c8'),
+    'azul':   ('#1f2937', '#1d4ed8', '#3b82f6', '#4b5563'),
 }
-SELECTORES_CSS = ['body', '.card', '.card h2', 'fieldset', 'legend', '.campo input', '.campo select',
-                  '.campo textarea', '.ayuda', 'button']
-PROPIEDADES_COLOR = {'color', 'background', 'background-color', 'border-color'}
+TEXTO_BOTON = '#ffffff'
+TEMAS = {
+    'claro':  'fondos claros: la página gris muy claro, la tarjeta blanca y los campos de un gris claro apenas distinto de la '
+              'tarjeta; el botón gris oscuro',
+    'oscuro': 'fondos oscuros: la página casi negra, la tarjeta gris oscuro y los campos de un gris oscuro un poco más claro '
+              'que la tarjeta; el botón de un azul oscuro intenso',
+    'azul':   'fondos claros con tono azul: la página celeste muy claro, la tarjeta blanca y los campos celeste muy suave; '
+              'el botón azul intenso',
+}
+SELECTORES_CSS = ['body', '.card', '.campo input', '.campo select', '.campo textarea', 'button']
+CONTRASTE_MINIMO = 4.5      # recomendación de accesibilidad (WCAG) para texto normal
+
+
+def luminancia(color):
+    """Luminancia relativa de un color #rrggbb (fórmula de WCAG): 0 = negro, 1 = blanco."""
+    canales = []
+    for i in (1, 3, 5):
+        c = int(color[i:i + 2], 16) / 255
+        canales.append(c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4)
+    r, g, b = canales
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contraste(color1, color2):
+    """Relación de contraste entre dos colores: 1 (iguales) a 21 (negro sobre blanco)."""
+    l1, l2 = sorted((luminancia(color1), luminancia(color2)), reverse=True)
+    return (l1 + 0.05) / (l2 + 0.05)
+
+
+def fondos_de(css):
+    """Lee el CSS del LLM: devuelve {selector: color de fondo} y el conjunto de propiedades no permitidas."""
+    fondos, otras = {}, set()
+    for sel, decl in re.findall(r'([^{}]+)\{([^{}]*)\}', css):
+        for d in decl.split(';'):
+            if ':' not in d:
+                continue
+            prop, valor = (x.strip() for x in d.split(':', 1))
+            if prop not in ('background-color', 'background'):
+                otras.add(prop)
+            elif re.fullmatch(r'#[0-9a-fA-F]{6}', valor):
+                for s in sel.split(','):
+                    fondos[' '.join(s.split())] = valor.lower()
+    return fondos, otras
 
 
 def generar_css(tema):
-    pedido = (f'Generá solo el CSS (sin etiqueta <style>) con los COLORES de un formulario con tema {tema.upper()}: '
+    texto = LETRAS_Y_LINEAS[tema][0]
+    tono = 'oscuros' if tema == 'oscuro' else 'claros'
+    pedido = (f'Generá solo el CSS (sin etiqueta <style>) con los COLORES DE FONDO de un formulario con tema {tema.upper()}: '
               f'{TEMAS[tema]}.\n'
-              f'Escribí reglas que cubran cada uno de estos selectores: {", ".join(SELECTORES_CSS)}.\n'
-              f'Usá únicamente las propiedades {", ".join(sorted(PROPIEDADES_COLOR))}, con colores en formato #rrggbb. '
-              'En .card h2 y legend usá solo la propiedad color (sin fondo). '
-              'No agregues tamaños, márgenes, fuentes ni otras propiedades.')
+              f'Las letras del formulario son de color {texto}, así que los fondos de la página, la tarjeta y los campos '
+              f'tienen que ser {tono} para que se lean bien. El botón tiene letras blancas ({TEXTO_BOTON}), así que su fondo '
+              'tiene que ser oscuro o de un color intenso. El fondo de los campos tiene que ser distinto del de la tarjeta.\n'
+              f'Escribí una regla para cada uno de estos selectores: {", ".join(SELECTORES_CSS)}.\n'
+              'Usá únicamente la propiedad background-color, con colores en formato #rrggbb. '
+              'No agregues ninguna otra propiedad.')
 
     def verificar(css):
         p = []
@@ -264,18 +307,21 @@ def generar_css(tema):
             p.append('devolvé solo CSS, sin etiquetas HTML')
         if css.count('{') != css.count('}') or css.count('{') == 0:
             p.append('las llaves { } no están balanceadas')
-        reglas = re.findall(r'([^{}]+)\{([^{}]*)\}', css)
-        selectores = {' '.join(s.split()) for sel, _ in reglas for s in sel.split(',')}
-        faltan = [s for s in SELECTORES_CSS if s not in selectores]
-        if faltan:
-            p.append('faltan reglas para estos selectores: ' + ', '.join(faltan))
-        otras = sorted({d.split(':')[0].strip() for _, decl in reglas for d in decl.split(';') if ':' in d}
-                       - PROPIEDADES_COLOR)
+        fondos, otras = fondos_de(css)
         if otras:
-            p.append('solo se permiten propiedades de color; sacá: ' + ', '.join(otras))
-        for sel, decl in reglas:
-            if {' '.join(x.split()) for x in sel.split(',')} & {'.card h2', 'legend'} and 'background' in decl:
-                p.append('en .card h2 y legend no pongas fondo (background), solo color')
-                break
+            p.append('solo se permite background-color; sacá: ' + ', '.join(sorted(otras)))
+        faltan = [s for s in SELECTORES_CSS if s not in fondos]
+        if faltan:
+            p.append('faltan reglas con background-color #rrggbb para: ' + ', '.join(faltan))
+            return p
+        for sel in SELECTORES_CSS:
+            letra = TEXTO_BOTON if sel == 'button' else texto
+            c = contraste(fondos[sel], letra)
+            if c < CONTRASTE_MINIMO:
+                cambio = 'más oscuro' if luminancia(letra) > 0.5 else 'más claro'
+                p.append(f'el fondo de {sel} ({fondos[sel]}) casi no contrasta con sus letras {letra} '
+                         f'(contraste {c:.1f}, mínimo {CONTRASTE_MINIMO}): elegí un fondo {cambio}')
+        if fondos['.campo input'] == fondos['.card']:
+            p.append('el fondo de los campos tiene que ser distinto del de .card')
         return p
     return pedir(pedido, verificar, es_css=True)

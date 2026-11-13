@@ -61,7 +61,7 @@ def traducir(texto, avisar=lambda mensaje: None):
     form = form.replace(agente.MARCA, cuerpo)
     avisar('  estilos')
     css = agente.generar_css(arbol['tema'])
-    return armar_documento(arbol['titulo'], css, form)
+    return armar_documento(arbol['titulo'], arbol['tema'], css, form)
 
 
 # ---------------------------------------------------------------- armado y formateo
@@ -134,10 +134,22 @@ def formatear_css(css, nivel):
     return lineas[:-1]
 
 
-def armar_documento(titulo, css, form):
+def letras_y_lineas(tema):
+    """CSS fijo con el color de letras y líneas del tema (el LLM solo elige los fondos)."""
+    texto, titulos, lineas, ayuda = agente.LETRAS_Y_LINEAS[tema]
+    return (f'body, .card {{ color: {texto}; }}\n'
+            f'.card h2, legend {{ color: {titulos}; }}\n'
+            f'fieldset, .campo input, .campo select, .campo textarea {{ border-color: {lineas}; color: {texto}; }}\n'
+            f'.ayuda {{ color: {ayuda}; }}\n'
+            f'button {{ color: {agente.TEXTO_BOTON}; }}\n')
+
+
+def armar_documento(titulo, tema, css, form):
     lineas = ['<!DOCTYPE html>', '<html lang="es">', '  <head>', '    <meta charset="utf-8">',
               f'    <title>{html.escape(titulo)}</title>', '    <style>']
-    lineas += formatear_css(CSS_BASE, 3) + [''] + ['      /* colores del tema (generados por el LLM) */'] + formatear_css(css, 3)
+    lineas += formatear_css(CSS_BASE, 3) + ['', '      /* letras y líneas del tema (fijas) */']
+    lineas += formatear_css(letras_y_lineas(tema), 3) + ['', '      /* fondos del tema (generados por el LLM) */']
+    lineas += formatear_css(css, 3)
     lineas += ['    </style>', '  </head>', '  <body>']
     lineas += formatear_html(BeautifulSoup(form, 'html.parser'), 2)
     lineas += ['  </body>', '</html>']

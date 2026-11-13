@@ -95,7 +95,16 @@ def test_html_formateado_y_estilos():
     assert lineas[0] == '<!DOCTYPE html>'
     assert '      <h2>Contacto</h2>' in lineas            # un elemento por línea, con sangría
     assert all((len(l) - len(l.lstrip(' '))) % 2 == 0 for l in lineas if l.strip())
-    assert '.card {' in html and 'colores del tema' in html
+    assert '.card {' in html and 'fondos del tema' in html
+
+
+def test_fondos_del_llm_contrastan_con_las_letras_del_tema():
+    import agente_planilla as agente
+    for tema, (texto, *_) in agente.LETRAS_Y_LINEAS.items():
+        fondos, _ = agente.fondos_de(agente.generar_css(tema))
+        for selector in ('.card', '.campo input'):
+            assert agente.contraste(fondos[selector], texto) >= agente.CONTRASTE_MINIMO, (tema, selector)
+        assert agente.contraste(fondos['button'], agente.TEXTO_BOTON) >= agente.CONTRASTE_MINIMO, tema
 
 
 # ================================================================ errores léxicos
