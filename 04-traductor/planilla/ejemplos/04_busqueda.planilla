@@ -1,0 +1,8 @@
+formulario 'Buscar productos' get='/buscar'
+  fila
+    texto nombre='Producto' placeholder='Ej: auriculares'
+    opciones nombre='Categoría' ('Todas', 'Audio', 'Computación')
+  fila
+    numero nombre='Precio mínimo' min=0
+    numero nombre='Precio máximo' min=0
+  boton 'Buscar'

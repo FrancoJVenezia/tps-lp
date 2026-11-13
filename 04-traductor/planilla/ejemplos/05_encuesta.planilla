@@ -1,0 +1,9 @@
+# Encuesta al final de una compra
+formulario 'Contanos tu experiencia' post='api/encuesta'
+  email nombre='Correo' ayuda='Solo para enviarte el cupón'
+  seccion 'Tu compra'
+    opciones nombre='¿Cómo calificás la atención?' ('Excelente', 'Buena', 'Regular', 'Mala') obligatorio
+    numero nombre='¿Del 1 al 10 nos recomendarías?' min=1 max=10 mensaje='Elegí un número del 1 al 10'
+    area nombre='Comentarios' placeholder='¿Qué podemos mejorar?'
+  casilla nombre='Quiero recibir novedades'
+  boton 'Enviar encuesta'

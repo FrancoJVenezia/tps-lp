@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <title>Contanos tu experiencia</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 40px 16px;
+        font-family: system-ui, Segoe UI, Arial, sans-serif;
+      }
+
+      .card {
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 24px 28px;
+        border-radius: 12px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+      }
+
+      .card h2 {
+        margin: 0 0 18px;
+      }
+
+      fieldset {
+        border: 1px solid;
+        border-radius: 8px;
+        padding: 10px 16px 2px;
+        margin: 0 0 18px;
+      }
+
+      legend {
+        padding: 0 6px;
+        font-weight: 600;
+      }
+
+      .campo {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 14px;
+      }
+
+      .campo input, .campo select, .campo textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid;
+        border-radius: 6px;
+        font: inherit;
+      }
+
+      .campo textarea {
+        min-height: 80px;
+        resize: vertical;
+      }
+
+      .campo:has(input[type="checkbox"]) {
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .campo input[type="checkbox"] {
+        width: auto;
+        margin: 0;
+      }
+
+      .fila {
+        display: flex;
+        gap: 16px;
+      }
+
+      .fila .campo {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .ayuda {
+        font-size: 0.85em;
+        opacity: 0.8;
+      }
+
+      button {
+        padding: 10px 22px;
+        border: none;
+        border-radius: 6px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      /* colores del tema (generados por el LLM) */
+      body {
+        background-color: #f7f7f7;
+      }
+
+      .card {
+        background-color: #ffffff;
+        border-color: #d3d3d3;
+      }
+
+      .card h2 {
+        color: #333333;
+      }
+
+      fieldset {
+        background-color: #ffffff;
+        border-color: #d3d3d3;
+      }
+
+      legend {
+        color: #333333;
+      }
+
+      .campo input {
+        background-color: #ffffff;
+        border-color: #d3d3d3;
+      }
+
+      .campo select {
+        background-color: #ffffff;
+        border-color: #d3d3d3;
+      }
+
+      .campo textarea {
+        background-color: #ffffff;
+        border-color: #d3d3d3;
+      }
+
+      .ayuda {
+        color: #333333;
+      }
+
+      button {
+        background-color: #444444;
+        border-color: #444444;
+        color: #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <form class="card tema-claro" method="post" action="api/encuesta">
+      <h2>Contanos tu experiencia</h2>
+      <div class="campo">
+        <label for="correo">Correo</label>
+        <input type="email" id="correo" name="correo">
+        <small class="ayuda">Solo para enviarte el cupón</small>
+      </div>
+      <fieldset>
+        <legend>Tu compra</legend>
+        <div class="campo">
+          <label for="como_calificas_la_atencion">¿Cómo calificás la atención?</label>
+          <select id="como_calificas_la_atencion" name="como_calificas_la_atencion" required>
+            <option value="Excelente">Excelente</option>
+            <option value="Buena">Buena</option>
+            <option value="Regular">Regular</option>
+            <option value="Mala">Mala</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="del_1_al_10_nos_recomendarias">¿Del 1 al 10 nos recomendarías?</label>
+          <input type="number" id="del_1_al_10_nos_recomendarias" name="del_1_al_10_nos_recomendarias" min="1" max="10" oninvalid="this.setCustomValidity('Elegí un número del 1 al 10')" oninput="this.setCustomValidity('')">
+        </div>
+        <div class="campo">
+          <label for="comentarios">Comentarios</label>
+          <textarea id="comentarios" name="comentarios" placeholder="¿Qué podemos mejorar?"></textarea>
+        </div>
+      </fieldset>
+      <div class="campo">
+        <input type="checkbox" id="quiero_recibir_novedades" name="quiero_recibir_novedades">
+        <label for="quiero_recibir_novedades">Quiero recibir novedades</label>
+      </div>
+      <button type="submit">Enviar encuesta</button>
+    </form>
+  </body>
+</html>
