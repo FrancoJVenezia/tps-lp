@@ -81,6 +81,7 @@ legend { padding: 0 6px; font-weight: 600; }
 .fila { display: flex; gap: 16px; }
 .fila .campo { flex: 1; min-width: 0; }
 .ayuda { font-size: 0.85em; opacity: 0.8; }
+.campo:has([required]) label::after { content: " *"; color: #e03131; }
 button { padding: 10px 22px; border: none; border-radius: 6px; font: inherit; font-weight: 600; cursor: pointer; }
 '''
 
