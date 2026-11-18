@@ -1,3 +1,0 @@
-formulario 'Contacto' post='api/contacto'
-   texto nombre='Comentario'
-  boton 'Enviar'

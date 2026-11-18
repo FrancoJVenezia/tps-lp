@@ -1,5 +1,0 @@
-formulario 'Registro' post='api/registro'
-  seccion 'Datos'
-    seccion 'Más datos'
-      texto nombre='Nombre'
-  boton 'Enviar'

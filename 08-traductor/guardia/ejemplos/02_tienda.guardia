@@ -1,0 +1,14 @@
+# Permisos de la tienda online
+permisos 'Tienda'
+  rol 'invitado'
+    puede ver 'productos'
+  rol 'cliente' hereda 'invitado'
+    puede crear 'pedidos'
+    puede ver 'pedidos'
+  rol 'admin' hereda 'cliente'
+    puede todo 'productos'
+    puede borrar 'pedidos'
+  # el pasante ayuda al admin, pero no puede borrar nada
+  rol 'pasante' hereda 'admin'
+    no puede borrar 'productos'
+    no puede borrar 'pedidos'

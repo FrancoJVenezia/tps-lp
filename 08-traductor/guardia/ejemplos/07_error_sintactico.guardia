@@ -1,0 +1,5 @@
+permisos 'Tienda'
+  rol 'cliente'
+    puede ver 'productos'
+    rol 'admin'
+      puede todo 'productos'

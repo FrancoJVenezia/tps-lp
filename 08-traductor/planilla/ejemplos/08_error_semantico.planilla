@@ -1,5 +1,0 @@
-formulario 'Registro' post='api/registro'
-  texto nombre='Edad' min=18
-  fila
-    email nombre='Correo'
-  boton 'Enviar'

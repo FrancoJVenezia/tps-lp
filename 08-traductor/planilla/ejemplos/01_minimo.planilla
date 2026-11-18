@@ -1,3 +1,0 @@
-formulario 'Contacto' post='api/contacto'
-  texto nombre='Comentario' placeholder='Escribí tu comentario'
-  boton 'Enviar'

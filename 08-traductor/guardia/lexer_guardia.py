@@ -1,4 +1,4 @@
-"""Analizador léxico de planilla (PLY).
+"""Analizador léxico de guardia (PLY).
 
 Además de los tokens comunes, genera tres tokens que marcan la estructura por sangría:
   NUEVA_LINEA  al terminar cada línea con contenido
@@ -9,27 +9,13 @@ import ply.lex as lex
 
 # ---------------------------------------------------------------- palabras reservadas
 reservadas = {
-    'formulario': 'FORMULARIO', 'seccion': 'SECCION', 'fila': 'FILA', 'boton': 'BOTON',
-    'post': 'POST', 'get': 'GET',
-    'tema': 'TEMA', 'claro': 'CLARO', 'oscuro': 'OSCURO', 'azul': 'AZUL',
-    'texto': 'TEXTO', 'email': 'EMAIL', 'numero': 'NUMERO', 'fecha': 'FECHA',
-    'area': 'AREA', 'clave': 'CLAVE', 'opciones': 'OPCIONES', 'casilla': 'CASILLA',
-    'nombre': 'NOMBRE', 'placeholder': 'PLACEHOLDER', 'ayuda': 'AYUDA', 'mensaje': 'MENSAJE',
-    'min': 'MIN', 'max': 'MAX', 'obligatorio': 'OBLIGATORIO',
+    'permisos': 'PERMISOS', 'rol': 'ROL', 'hereda': 'HEREDA', 'puede': 'PUEDE', 'no': 'NO',
+    'ver': 'VER', 'crear': 'CREAR', 'editar': 'EDITAR', 'borrar': 'BORRAR', 'todo': 'TODO',
 }
 
-tokens = [
-    'CADENA', 'ENTERO', 'IGUAL', 'PAR_A', 'PAR_C', 'COMA',
-    'NUEVA_LINEA', 'INDENTA', 'DESINDENTA',
-] + list(reservadas.values())
+tokens = ['CADENA', 'NUEVA_LINEA', 'INDENTA', 'DESINDENTA'] + list(reservadas.values())
 
 ESPACIOS_POR_NIVEL = 2
-
-# ---------------------------------------------------------------- reglas simples
-t_IGUAL = r'='
-t_PAR_A = r'\('
-t_PAR_C = r'\)'
-t_COMA = r','
 
 # Dentro de una línea solo se ignoran espacios (los tabs son error).
 t_ignore = ' '
@@ -63,12 +49,6 @@ def t_CADENA(t):
 def t_CADENA_SIN_CERRAR(t):
     r"'[^'\n]*"
     t.lexer.errores.append((t.lineno, columna(t), f"Cadena sin cerrar: {t.value}"))
-
-
-def t_ENTERO(t):
-    r'[0-9]+'
-    t.value = int(t.value)
-    return t
 
 
 def t_PALABRA(t):
@@ -143,7 +123,7 @@ def _con_sangria(base):
         yield _nuevo('DESINDENTA', None, base.lineno)
 
 
-class LexerPlanilla:
+class LexerGuardia:
     """Lexer con la misma interfaz que usa ply.yacc (input/token), más la lista de errores."""
 
     def __init__(self):
@@ -168,4 +148,4 @@ class LexerPlanilla:
 
 
 tokens = tokens + ['SALTO']  # token interno: nunca llega al parser
-lexer = LexerPlanilla()
+lexer = LexerGuardia()

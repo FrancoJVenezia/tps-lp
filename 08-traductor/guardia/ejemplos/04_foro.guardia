@@ -1,0 +1,15 @@
+# Foro de una comunidad
+permisos 'Foro'
+  rol 'visitante'
+    puede ver 'temas'
+    puede ver 'respuestas'
+  rol 'miembro' hereda 'visitante'
+    puede crear 'temas'
+    puede crear 'respuestas'
+  rol 'moderador' hereda 'miembro'
+    puede editar 'temas'
+    puede borrar 'temas'
+    puede borrar 'respuestas'
+  # el bot de spam solo puede borrar: no hereda de nadie
+  rol 'bot'
+    puede borrar 'respuestas'

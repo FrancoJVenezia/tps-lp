@@ -1,0 +1,3 @@
+permisos 'Blog'
+  rol 'lector'
+    puede leer 'articulos'
