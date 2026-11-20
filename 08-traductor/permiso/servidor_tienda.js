@@ -2,7 +2,7 @@
 // Uso: node servidor_tienda.js <módulo generado .js> [puerto]
 const path = require('path');
 const express = require('express');
-const { exigir } = require(path.resolve(process.argv[2]));
+const { PERMISOS, puede, exigir } = require(path.resolve(process.argv[2]));
 
 const app = express();
 const puerto = Number(process.argv[3] || 3457);
@@ -13,6 +13,20 @@ app.use((req, res, next) => {
   const rol = req.get('X-Rol');
   if (rol) req.usuario = { rol };
   next();
+});
+
+// Lista pública de roles, sacada de la tabla PERMISOS (no hace falta iniciar sesión).
+app.get('/roles', (req, res) => res.json(Object.keys(PERMISOS)));
+
+// Qué puede hacer el usuario, preguntándole a puede() por cada recurso y acción.
+// Una página la usaría para mostrar solo los botones permitidos (por ejemplo, ocultar "Borrar").
+app.get('/mis-permisos', (req, res) => {
+  if (!req.usuario) return res.status(401).send('Falta iniciar sesión');
+  const permisos = {};
+  for (const recurso of ['productos', 'pedidos']) {
+    permisos[recurso] = ['ver', 'crear', 'editar', 'borrar'].filter(accion => puede(req.usuario.rol, accion, recurso));
+  }
+  res.json(permisos);
 });
 
 // Cada ruta exige un permiso: acción + recurso, como en el programa en permiso.

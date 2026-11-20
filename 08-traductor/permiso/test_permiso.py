@@ -161,6 +161,16 @@ def test_servidor_express_real(tmp_path):
         assert estado('DELETE', '/productos/7', 'admin') == 200
         assert estado('DELETE', '/productos/7', 'pasante') == 403
         assert estado('PUT', '/productos/7', 'pasante') == 200
+
+        def json_de(ruta, rol=None):
+            pedido = urllib.request.Request(f'http://127.0.0.1:{puerto}{ruta}', headers={'X-Rol': rol} if rol else {})
+            with urllib.request.urlopen(pedido) as r:
+                return json.loads(r.read())
+
+        assert json_de('/roles') == ['invitado', 'cliente', 'admin', 'pasante']               # PERMISOS
+        assert json_de('/mis-permisos', 'pasante') == {'productos': ['ver', 'crear', 'editar'],
+                                                       'pedidos': ['ver', 'crear']}          # puede()
+        assert estado('GET', '/mis-permisos') == 401
     finally:
         servidor.terminate()
 
