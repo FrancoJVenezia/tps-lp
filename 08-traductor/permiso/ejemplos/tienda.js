@@ -1,12 +1,12 @@
-// Permisos de 'Foro': generado por el traductor permiso a partir de 04_foro.permiso.
-// Uso en Express: const { exigir } = require('./este-archivo');
+// Permisos de 'Tienda' (tienda.js): generado por el traductor permiso a partir de 02_tienda.permiso.
+// Uso en Express: const { exigir } = require('./tienda');
 //                 app.post('/ruta', exigir('crear', 'recurso'), manejador);
 
 const PERMISOS = {
-  visitante: { hereda: null, puede: { temas: ['ver'], respuestas: ['ver'] } },
-  miembro: { hereda: 'visitante', puede: { temas: ['crear'], respuestas: ['crear'] } },
-  'moderador': { hereda: 'miembro', puede: { temas: ['editar', 'borrar'], respuestas: ['borrar'] } },
-  bot: { hereda: null, puede: { respuestas: ['borrar'] } },
+  'invitado': { hereda: null, puede: { productos: ['ver'] } },
+  'cliente': { hereda: 'invitado', puede: { 'pedidos': ['crear', 'ver'] } },
+  admin: { hereda: 'cliente', puede: { productos: ['todo'], pedidos: ['borrar'] } },
+  'pasante': { hereda: 'admin', puede: {}, noPuede: { productos: ['borrar'], pedidos: ['borrar'] } },
 };
 
 function contiene(lista, accion) {

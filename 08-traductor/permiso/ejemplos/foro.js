@@ -1,13 +1,12 @@
-// Permisos de 'Campus virtual': generado por el traductor permiso a partir de 05_campus.permiso.
-// Uso en Express: const { exigir } = require('./este-archivo');
+// Permisos de 'Foro' (foro.js): generado por el traductor permiso a partir de 04_foro.permiso.
+// Uso en Express: const { exigir } = require('./foro');
 //                 app.post('/ruta', exigir('crear', 'recurso'), manejador);
 
 const PERMISOS = {
-  'alumno': { hereda: null, puede: { materias: ['ver'], notas: ['ver'], entregas: ['crear'] } },
-  'ayudante': { hereda: 'alumno', puede: { entregas: ['ver'], notas: ['editar'] } },
-  'profesor': { hereda: 'ayudante', puede: { materias: ['todo'], notas: ['todo'] }, noPuede: { notas: ['borrar'] } },
-  administrativo: { hereda: null, puede: { materias: ['ver'], inscripciones: ['todo'] } },
-  'suspendido': { hereda: 'alumno', puede: {}, noPuede: { entregas: ['crear'] } },
+  visitante: { hereda: null, puede: { temas: ['ver'], respuestas: ['ver'] } },
+  miembro: { hereda: 'visitante', puede: { temas: ['crear'], respuestas: ['crear'] } },
+  'moderador': { hereda: 'miembro', puede: { temas: ['editar', 'borrar'], respuestas: ['borrar'] } },
+  bot: { hereda: null, puede: { respuestas: ['borrar'] } },
 };
 
 function contiene(lista, accion) {

@@ -138,7 +138,7 @@ def servidor_disponible():
 
 @pytest.mark.skipif(not servidor_disponible(), reason='Express no está instalado (npm install express)')
 def test_servidor_express_real(tmp_path):
-    modulo = tmp_path / 'tienda.permiso.js'
+    modulo = tmp_path / 'tienda.js'
     modulo.write_text(traducir(leer('02_tienda.permiso')), encoding='utf-8')
     puerto = '3471'
     servidor = subprocess.Popen(['node', str(CARPETA / 'servidor_tienda.js'), str(modulo), puerto],
@@ -235,6 +235,7 @@ def rol(nombre, hereda=None, permiso="puede ver 'x'"):
 
 @pytest.mark.parametrize('roles, mensaje', [
     (rol('a') + rol('a'), "El rol 'a' ya se definió en la línea 2"),
+    ("permisos '!!!'\n" + rol('a'), "no sirve para el archivo generado"),
     (rol('a', 'z'), "hereda de 'z', que no existe"),
     (rol('a', 'a'), 'no puede heredar de sí mismo'),
     (rol('a', 'b') + rol('b', 'a'), "Herencia circular: 'a' → 'b' → 'a'"),
@@ -244,12 +245,12 @@ def rol(nombre, hereda=None, permiso="puede ver 'x'"):
     ("  rol 'a'\n    puede ver 'x'\n    no puede todo 'x'\n", 'Contradicción'),
     (rol('a', permiso="puede todo 'x'") + rol('b', 'a', "no puede ver 'y'"), 'no hace falta'),
     (rol('a') + rol('b', 'a', "no puede borrar 'x'"), 'no hace falta'),
-], ids=['rol_repetido', 'hereda_inexistente', 'hereda_de_si_mismo', 'circular_directa', 'circular_indirecta',
+], ids=['rol_repetido', 'nombre_sin_letras', 'hereda_inexistente', 'hereda_de_si_mismo', 'circular_directa', 'circular_indirecta',
         'permiso_repetido', 'contradiccion', 'contradiccion_con_todo', 'excepcion_sobre_otro_recurso',
         'excepcion_de_algo_no_heredado'])
 def test_errores_semanticos(roles, mensaje):
     with pytest.raises(ErrorPermiso) as e:
-        analizar("permisos 'App'\n" + roles)
+        analizar(roles if roles.startswith('permisos') else "permisos 'App'\n" + roles)
     assert e.value.tipo == 'semántico'
     assert any(mensaje in m for _, m in e.value.errores)
 
@@ -271,24 +272,33 @@ def test_casos_validos_que_no_son_error():
 
 # ================================================================ programa por consola (main.py)
 
+@pytest.mark.parametrize('aplicacion, archivo', [
+    ('Tienda', 'tienda.js'),
+    ('Campus virtual', 'campus-virtual.js'),
+    ('Clínica San José', 'clinica-san-jose.js'),
+], ids=['simple', 'con_espacio', 'con_acentos'])
+def test_nombre_del_archivo_generado(aplicacion, archivo):
+    assert analizar(f"permisos '{aplicacion}'\n" + rol('a'))['archivo'] == archivo
+
+
 def ejecutar_main(tmp_path, programa):
     fuente = tmp_path / 'prueba.permiso'
     fuente.write_text(programa, encoding='utf-8')
     r = subprocess.run([sys.executable, str(CARPETA / 'main.py'), str(fuente)],
                        capture_output=True, text=True, encoding='utf-8')
-    return r, tmp_path / 'prueba.permiso.js'
+    return r, list(tmp_path.glob('*.js'))
 
 
 def test_main_caso_feliz(tmp_path):
-    r, salida = ejecutar_main(tmp_path, leer('01_minimo.permiso'))
+    r, generados = ejecutar_main(tmp_path, leer('01_minimo.permiso'))   # permisos 'Blog'
     assert r.returncode == 0
-    assert salida.exists()
-    ok, _ = ejecutar_node(salida.read_text(encoding='utf-8'))   # el archivo generado se ejecuta sin errores
+    assert [g.name for g in generados] == ['blog.js']
+    ok, _ = ejecutar_node(generados[0].read_text(encoding='utf-8'))   # el archivo generado se ejecuta sin errores
     assert ok
 
 
 def test_main_caso_con_error(tmp_path):
-    r, salida = ejecutar_main(tmp_path, leer('08_error_semantico.permiso'))
+    r, generados = ejecutar_main(tmp_path, leer('08_error_semantico.permiso'))
     assert r.returncode == 1
     assert 'Error semántico' in r.stdout and 'línea 2' in r.stdout and 'Herencia circular' in r.stdout
-    assert not salida.exists()
+    assert generados == []

@@ -1,9 +1,13 @@
-// Permisos de 'Blog': generado por el traductor permiso a partir de 01_minimo.permiso.
-// Uso en Express: const { exigir } = require('./este-archivo');
+// Permisos de 'Campus virtual' (campus-virtual.js): generado por el traductor permiso a partir de 05_campus.permiso.
+// Uso en Express: const { exigir } = require('./campus-virtual');
 //                 app.post('/ruta', exigir('crear', 'recurso'), manejador);
 
 const PERMISOS = {
-  'lector': { hereda: null, puede: { 'articulos': ['ver'] } },
+  'alumno': { hereda: null, puede: { materias: ['ver'], notas: ['ver'], entregas: ['crear'] } },
+  'ayudante': { hereda: 'alumno', puede: { entregas: ['ver'], notas: ['editar'] } },
+  'profesor': { hereda: 'ayudante', puede: { materias: ['todo'], notas: ['todo'] }, noPuede: { notas: ['borrar'] } },
+  administrativo: { hereda: null, puede: { materias: ['ver'], inscripciones: ['todo'] } },
+  'suspendido': { hereda: 'alumno', puede: {}, noPuede: { entregas: ['crear'] } },
 };
 
 function contiene(lista, accion) {

@@ -41,8 +41,8 @@ def traducir(texto, avisar=lambda mensaje: None, origen='programa'):
 # ---------------------------------------------------------------- armado
 
 def armar_modulo(arbol, origen, entradas, funciones):
-    lineas = [f"// Permisos de '{arbol['aplicacion']}': generado por el traductor permiso a partir de {origen}.",
-              '// Uso en Express: const { exigir } = require(\'./este-archivo\');',
+    lineas = [f"// Permisos de '{arbol['aplicacion']}' ({arbol['archivo']}): generado por el traductor permiso a partir de {origen}.",
+              f"// Uso en Express: const {{ exigir }} = require('./{arbol['archivo'][:-3]}');",
               "//                 app.post('/ruta', exigir('crear', 'recurso'), manejador);",
               '',
               'const PERMISOS = {']

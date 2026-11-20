@@ -1,14 +1,9 @@
-// Permisos de 'Hospital': generado por el traductor permiso a partir de 03_hospital.permiso.
-// Uso en Express: const { exigir } = require('./este-archivo');
+// Permisos de 'Blog' (blog.js): generado por el traductor permiso a partir de 01_minimo.permiso.
+// Uso en Express: const { exigir } = require('./blog');
 //                 app.post('/ruta', exigir('crear', 'recurso'), manejador);
 
 const PERMISOS = {
-  'paciente': { hereda: null, puede: { turnos: ['ver', 'crear', 'borrar'] } },
-  'recepcionista': { hereda: null, puede: { turnos: ['todo'], pacientes: ['ver', 'crear'] } },
-  enfermero: { hereda: 'recepcionista', puede: { 'historias clínicas': ['ver'] } },
-  'médico': { hereda: 'enfermero', puede: { 'historias clínicas': ['crear', 'editar'], 'recetas': ['crear'] } },
-  'residente': { hereda: 'médico', puede: {}, noPuede: { recetas: ['crear'] } },
-  director: { hereda: 'médico', puede: { pacientes: ['todo'], estadísticas: ['ver'] } },
+  'lector': { hereda: null, puede: { 'articulos': ['ver'] } },
 };
 
 function contiene(lista, accion) {

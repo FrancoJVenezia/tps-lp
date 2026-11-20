@@ -4,6 +4,9 @@ El parser no genera JavaScript: arma un árbol con los roles y sus permisos (dic
 y verifica las reglas semánticas. La generación del código la hace después el agente (LLM),
 recorriendo ese árbol, solo si no hubo ningún error.
 """
+import re
+import unicodedata
+
 import ply.yacc as yacc
 from lexer_permiso import LexerPermiso, tokens as _tokens_lexer
 
@@ -34,8 +37,19 @@ def error_semantico(linea, mensaje):
 
 def p_programa(p):
     'programa : PERMISOS CADENA NUEVA_LINEA INDENTA roles DESINDENTA'
-    p[0] = {'aplicacion': p[2], 'roles': p[5]}
+    p[0] = {'aplicacion': p[2], 'archivo': nombre_archivo(p[2]), 'roles': p[5]}
+    if p[0]['archivo'] is None:
+        error_semantico(p.lineno(1), f"El nombre '{p[2]}' no sirve para el archivo generado: "
+                                     f"tiene que tener al menos una letra o un número")
     verificar_roles(p[5])
+
+
+def nombre_archivo(aplicacion):
+    """El archivo generado se llama como la aplicación: 'Campus Virtual' -> 'campus-virtual.js'.
+    Minúsculas, sin acentos y con guiones en lugar de espacios y símbolos. None si no queda nada."""
+    sin_acentos = unicodedata.normalize('NFKD', aplicacion).encode('ascii', 'ignore').decode()
+    nombre = re.sub(r'[^a-z0-9]+', '-', sin_acentos.lower()).strip('-')
+    return nombre + '.js' if nombre else None
 
 
 def p_roles(p):
