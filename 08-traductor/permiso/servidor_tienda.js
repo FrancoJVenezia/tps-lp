@@ -1,4 +1,4 @@
-// API de ejemplo de la tienda, protegida con el módulo de permisos que generó guardia.
+// API de ejemplo de la tienda, protegida con el módulo de permisos que generó el traductor permiso.
 // Uso: node servidor_tienda.js <módulo generado .js> [puerto]
 const path = require('path');
 const express = require('express');
@@ -15,7 +15,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Cada ruta exige un permiso: acción + recurso, como en el programa guardia.
+// Cada ruta exige un permiso: acción + recurso, como en el programa en permiso.
 app.get('/productos',       exigir('ver', 'productos'),    (req, res) => res.json(['mate', 'termo', 'yerba']));
 app.post('/productos',      exigir('crear', 'productos'),  (req, res) => res.status(201).send('Producto creado'));
 app.put('/productos/:id',   exigir('editar', 'productos'), (req, res) => res.send(`Producto ${req.params.id} editado`));

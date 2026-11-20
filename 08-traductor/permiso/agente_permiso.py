@@ -1,4 +1,4 @@
-"""Agente de guardia: le pide al LLM (ollama) el código JavaScript de cada parte del módulo de permisos.
+"""Agente del lenguaje permiso: le pide al LLM (ollama) el código JavaScript de cada parte del módulo de permisos.
 
 Cada pedido describe en lenguaje natural el significado de la construcción (la especificación
 semántica) con los datos que armó el parser, nunca el programa fuente. La respuesta se limpia y se

@@ -1,4 +1,4 @@
-"""TestSuite de guardia (pytest).
+"""TestSuite del lenguaje permiso (pytest).
 
 - Programas válidos: se traducen con el LLM y se EJECUTA el módulo JavaScript generado con Node,
   verificando qué responde (no el texto exacto, porque la redacción del LLM puede variar).
@@ -7,7 +7,7 @@
 - Tabla esperada: el cálculo de permisos con herencia y excepciones que hace el parser.
 - Errores léxicos, sintácticos y semánticos: se verifica el tipo de error y el mensaje.
 - Programa completo por consola (main.py), como lo usaría un programador.
-Ejecutar desde esta carpeta:  python -m pytest -v test_guardia.py
+Ejecutar desde esta carpeta:  python -m pytest -v test_permiso.py
 """
 import json
 import subprocess
@@ -20,9 +20,9 @@ import pytest
 
 CARPETA = Path(__file__).parent
 sys.path.insert(0, str(CARPETA))
-from parser_guardia import analizar, tabla_esperada, ErrorGuardia
-from traductor_guardia import traducir
-from agente_guardia import ejecutar_node
+from parser_permiso import analizar, tabla_esperada, ErrorPermiso
+from traductor_permiso import traducir
+from agente_permiso import ejecutar_node
 
 EJEMPLOS = CARPETA / 'ejemplos'
 
@@ -57,13 +57,13 @@ def pedido_express(modulo, usuario, accion, recurso):
 # ================================================================ programas válidos (con el LLM)
 
 def test_minimo():
-    m = traducir(leer('01_minimo.guardia'))
+    m = traducir(leer('01_minimo.permiso'))
     assert consultar(m, [['lector', 'ver', 'articulos'], ['lector', 'editar', 'articulos'],
                          ['admin', 'ver', 'articulos']]) == [True, False, False]
 
 
 def test_tienda_herencia_en_cadena_todo_y_excepciones():
-    m = traducir(leer('02_tienda.guardia'))
+    m = traducir(leer('02_tienda.permiso'))
     assert consultar(m, [
         ['invitado', 'ver', 'productos'],     # propio
         ['invitado', 'crear', 'pedidos'],     # no lo tiene
@@ -78,7 +78,7 @@ def test_tienda_herencia_en_cadena_todo_y_excepciones():
 
 
 def test_hospital_recursos_con_espacios_y_tildes():
-    m = traducir(leer('03_hospital.guardia'))
+    m = traducir(leer('03_hospital.permiso'))
     assert consultar(m, [
         ['director', 'ver', 'historias clínicas'],   # director → médico → enfermero
         ['director', 'borrar', 'turnos'],            # ... → recepcionista: 'todo' sobre turnos
@@ -91,13 +91,13 @@ def test_hospital_recursos_con_espacios_y_tildes():
 
 
 def test_foro_rol_sin_herencia():
-    m = traducir(leer('04_foro.guardia'))
+    m = traducir(leer('04_foro.permiso'))
     assert consultar(m, [['bot', 'borrar', 'respuestas'], ['bot', 'ver', 'temas'],
                          ['moderador', 'ver', 'respuestas']]) == [True, False, True]
 
 
 def test_campus_todo_menos_una_accion_en_el_mismo_rol():
-    m = traducir(leer('05_campus.guardia'))
+    m = traducir(leer('05_campus.permiso'))
     assert consultar(m, [['profesor', 'editar', 'notas'], ['profesor', 'borrar', 'notas'],
                          ['profesor', 'borrar', 'materias'], ['suspendido', 'ver', 'notas'],
                          ['suspendido', 'crear', 'entregas']]) == [True, False, True, True, False]
@@ -105,7 +105,7 @@ def test_campus_todo_menos_una_accion_en_el_mismo_rol():
 
 @pytest.mark.parametrize('ejemplo', ['01_minimo', '02_tienda', '03_hospital', '04_foro', '05_campus'])
 def test_todas_las_combinaciones_coinciden_con_la_tabla(ejemplo):
-    texto = leer(f'{ejemplo}.guardia')
+    texto = leer(f'{ejemplo}.permiso')
     tabla = tabla_esperada(analizar(texto))
     recursos = sorted({x for permisos in tabla.values() for x in permisos})
     preguntas = [[r, a, x] for r in tabla for a in ('ver', 'crear', 'editar', 'borrar') for x in recursos]
@@ -116,7 +116,7 @@ def test_todas_las_combinaciones_coinciden_con_la_tabla(ejemplo):
 # ================================================================ middleware de Express
 
 def test_middleware_401_403_y_siguiente():
-    m = traducir(leer('02_tienda.guardia'))
+    m = traducir(leer('02_tienda.permiso'))
     assert pedido_express(m, None, 'crear', 'pedidos') == 401
     assert pedido_express(m, {'rol': 'invitado'}, 'crear', 'pedidos') == 403
     assert pedido_express(m, {'rol': 'cliente'}, 'crear', 'pedidos') == 'siguiente'
@@ -124,7 +124,7 @@ def test_middleware_401_403_y_siguiente():
 
 
 def test_modulo_formateado():
-    m = traducir(leer('02_tienda.guardia'))
+    m = traducir(leer('02_tienda.permiso'))
     assert m.startswith("// Permisos de 'Tienda'")
     assert 'const PERMISOS = {' in m and m.rstrip().endswith('module.exports = { PERMISOS, puede, exigir };')
     assert m.count('function contiene(') == 1 and m.count('function puede(') == 1 and m.count('function exigir(') == 1
@@ -138,8 +138,8 @@ def servidor_disponible():
 
 @pytest.mark.skipif(not servidor_disponible(), reason='Express no está instalado (npm install express)')
 def test_servidor_express_real(tmp_path):
-    modulo = tmp_path / 'tienda.guardia.js'
-    modulo.write_text(traducir(leer('02_tienda.guardia')), encoding='utf-8')
+    modulo = tmp_path / 'tienda.permiso.js'
+    modulo.write_text(traducir(leer('02_tienda.permiso')), encoding='utf-8')
     puerto = '3471'
     servidor = subprocess.Popen(['node', str(CARPETA / 'servidor_tienda.js'), str(modulo), puerto],
                                 stdout=subprocess.PIPE, text=True, encoding='utf-8')
@@ -168,7 +168,7 @@ def test_servidor_express_real(tmp_path):
 # ================================================================ tabla esperada (parser, sin LLM)
 
 def test_tabla_esperada_aplica_herencia_todo_y_excepciones():
-    tabla = tabla_esperada(analizar(leer('02_tienda.guardia')))
+    tabla = tabla_esperada(analizar(leer('02_tienda.permiso')))
     assert tabla['invitado'] == {'productos': {'ver'}}
     assert tabla['cliente'] == {'productos': {'ver'}, 'pedidos': {'crear', 'ver'}}
     assert tabla['admin'] == {'productos': {'ver', 'crear', 'editar', 'borrar'}, 'pedidos': {'crear', 'ver', 'borrar'}}
@@ -200,7 +200,7 @@ E = "permisos 'App'\n  rol 'a'\n"
     ("permisos 'App'\n  rol 'a'\n      puede ver 'x'\n", 'sube más de un nivel'),
 ], ids=['sangria_impar', 'tabulacion', 'cadena_sin_cerrar', 'accion_desconocida', 'comillas_dobles', 'salto_de_nivel'])
 def test_errores_lexicos(programa, mensaje):
-    with pytest.raises(ErrorGuardia) as e:
+    with pytest.raises(ErrorPermiso) as e:
         analizar(programa)
     assert e.value.tipo == 'léxico'
     assert any(mensaje in m for _, m in e.value.errores)
@@ -221,7 +221,7 @@ def test_errores_lexicos(programa, mensaje):
 ], ids=['rol_sin_permisos', 'sin_roles', 'falta_recurso', 'falta_accion', 'rol_dentro_de_rol', 'sin_encabezado',
         'hereda_sin_nombre', 'no_sin_puede', 'no_despues_de_puede'])
 def test_errores_sintacticos(programa, linea):
-    with pytest.raises(ErrorGuardia) as e:
+    with pytest.raises(ErrorPermiso) as e:
         analizar(programa)
     assert e.value.tipo == 'sintáctico'
     assert e.value.errores[0][0] == linea
@@ -248,15 +248,15 @@ def rol(nombre, hereda=None, permiso="puede ver 'x'"):
         'permiso_repetido', 'contradiccion', 'contradiccion_con_todo', 'excepcion_sobre_otro_recurso',
         'excepcion_de_algo_no_heredado'])
 def test_errores_semanticos(roles, mensaje):
-    with pytest.raises(ErrorGuardia) as e:
+    with pytest.raises(ErrorPermiso) as e:
         analizar("permisos 'App'\n" + roles)
     assert e.value.tipo == 'semántico'
     assert any(mensaje in m for _, m in e.value.errores)
 
 
 def test_varios_errores_semanticos_se_informan_juntos():
-    with pytest.raises(ErrorGuardia) as e:
-        analizar(leer('08_error_semantico.guardia'))
+    with pytest.raises(ErrorPermiso) as e:
+        analizar(leer('08_error_semantico.permiso'))
     assert [l for l, _ in e.value.errores] == [2, 6, 10]
 
 
@@ -272,15 +272,15 @@ def test_casos_validos_que_no_son_error():
 # ================================================================ programa por consola (main.py)
 
 def ejecutar_main(tmp_path, programa):
-    fuente = tmp_path / 'prueba.guardia'
+    fuente = tmp_path / 'prueba.permiso'
     fuente.write_text(programa, encoding='utf-8')
     r = subprocess.run([sys.executable, str(CARPETA / 'main.py'), str(fuente)],
                        capture_output=True, text=True, encoding='utf-8')
-    return r, tmp_path / 'prueba.guardia.js'
+    return r, tmp_path / 'prueba.permiso.js'
 
 
 def test_main_caso_feliz(tmp_path):
-    r, salida = ejecutar_main(tmp_path, leer('01_minimo.guardia'))
+    r, salida = ejecutar_main(tmp_path, leer('01_minimo.permiso'))
     assert r.returncode == 0
     assert salida.exists()
     ok, _ = ejecutar_node(salida.read_text(encoding='utf-8'))   # el archivo generado se ejecuta sin errores
@@ -288,7 +288,7 @@ def test_main_caso_feliz(tmp_path):
 
 
 def test_main_caso_con_error(tmp_path):
-    r, salida = ejecutar_main(tmp_path, leer('08_error_semantico.guardia'))
+    r, salida = ejecutar_main(tmp_path, leer('08_error_semantico.permiso'))
     assert r.returncode == 1
     assert 'Error semántico' in r.stdout and 'línea 2' in r.stdout and 'Herencia circular' in r.stdout
     assert not salida.exists()

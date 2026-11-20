@@ -1,4 +1,4 @@
-// Permisos de 'Campus virtual': generado por guardia a partir de 05_campus.guardia.
+// Permisos de 'Campus virtual': generado por el traductor permiso a partir de 05_campus.permiso.
 // Uso en Express: const { exigir } = require('./este-archivo');
 //                 app.post('/ruta', exigir('crear', 'recurso'), manejador);
 

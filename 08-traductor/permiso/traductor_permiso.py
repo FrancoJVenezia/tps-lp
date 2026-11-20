@@ -1,4 +1,4 @@
-"""Traductor guardia: programa fuente -> módulo JavaScript de permisos.
+"""Traductor permiso: programa fuente -> módulo JavaScript de permisos.
 
 1. Análisis (lexer + parser + controles semánticos): arma el árbol o informa errores.
 2. Generación: recorre el árbol y le pide al agente (LLM) el código de cada rol y de las funciones.
@@ -8,14 +8,14 @@
 import json
 import re
 
-import agente_guardia as agente
-from parser_guardia import analizar, tabla_esperada, recursos_de, ACCIONES
+import agente_permiso as agente
+from parser_permiso import analizar, tabla_esperada, recursos_de, ACCIONES
 
 SANGRIA = '  '
 
 
 def traducir(texto, avisar=lambda mensaje: None, origen='programa'):
-    """Traduce un programa guardia a un módulo JavaScript. Lanza ErrorGuardia si el programa tiene errores."""
+    """Traduce un programa en permiso a un módulo JavaScript. Lanza ErrorPermiso si el programa tiene errores."""
     arbol = analizar(texto)
     avisar(f"permisos '{arbol['aplicacion']}'")
     entradas = []
@@ -41,7 +41,7 @@ def traducir(texto, avisar=lambda mensaje: None, origen='programa'):
 # ---------------------------------------------------------------- armado
 
 def armar_modulo(arbol, origen, entradas, funciones):
-    lineas = [f"// Permisos de '{arbol['aplicacion']}': generado por guardia a partir de {origen}.",
+    lineas = [f"// Permisos de '{arbol['aplicacion']}': generado por el traductor permiso a partir de {origen}.",
               '// Uso en Express: const { exigir } = require(\'./este-archivo\');',
               "//                 app.post('/ruta', exigir('crear', 'recurso'), manejador);",
               '',

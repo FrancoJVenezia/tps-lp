@@ -1,4 +1,4 @@
-"""Analizador léxico de guardia (PLY).
+"""Analizador léxico del lenguaje permiso (PLY).
 
 Además de los tokens comunes, genera tres tokens que marcan la estructura por sangría:
   NUEVA_LINEA  al terminar cada línea con contenido
@@ -123,7 +123,7 @@ def _con_sangria(base):
         yield _nuevo('DESINDENTA', None, base.lineno)
 
 
-class LexerGuardia:
+class LexerPermiso:
     """Lexer con la misma interfaz que usa ply.yacc (input/token), más la lista de errores."""
 
     def __init__(self):
@@ -148,4 +148,4 @@ class LexerGuardia:
 
 
 tokens = tokens + ['SALTO']  # token interno: nunca llega al parser
-lexer = LexerGuardia()
+lexer = LexerPermiso()

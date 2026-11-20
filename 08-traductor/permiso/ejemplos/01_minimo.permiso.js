@@ -1,4 +1,4 @@
-// Permisos de 'Blog': generado por guardia a partir de 01_minimo.guardia.
+// Permisos de 'Blog': generado por el traductor permiso a partir de 01_minimo.permiso.
 // Uso en Express: const { exigir } = require('./este-archivo');
 //                 app.post('/ruta', exigir('crear', 'recurso'), manejador);
 

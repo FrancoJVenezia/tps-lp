@@ -1,14 +1,12 @@
-// Permisos de 'Hospital': generado por guardia a partir de 03_hospital.guardia.
+// Permisos de 'Foro': generado por el traductor permiso a partir de 04_foro.permiso.
 // Uso en Express: const { exigir } = require('./este-archivo');
 //                 app.post('/ruta', exigir('crear', 'recurso'), manejador);
 
 const PERMISOS = {
-  'paciente': { hereda: null, puede: { turnos: ['ver', 'crear', 'borrar'] } },
-  'recepcionista': { hereda: null, puede: { turnos: ['todo'], pacientes: ['ver', 'crear'] } },
-  enfermero: { hereda: 'recepcionista', puede: { 'historias clínicas': ['ver'] } },
-  'médico': { hereda: 'enfermero', puede: { 'historias clínicas': ['crear', 'editar'], 'recetas': ['crear'] } },
-  'residente': { hereda: 'médico', puede: {}, noPuede: { recetas: ['crear'] } },
-  director: { hereda: 'médico', puede: { pacientes: ['todo'], estadísticas: ['ver'] } },
+  visitante: { hereda: null, puede: { temas: ['ver'], respuestas: ['ver'] } },
+  miembro: { hereda: 'visitante', puede: { temas: ['crear'], respuestas: ['crear'] } },
+  'moderador': { hereda: 'miembro', puede: { temas: ['editar', 'borrar'], respuestas: ['borrar'] } },
+  bot: { hereda: null, puede: { respuestas: ['borrar'] } },
 };
 
 function contiene(lista, accion) {

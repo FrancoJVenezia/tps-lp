@@ -1,12 +1,14 @@
-// Permisos de 'Tienda': generado por guardia a partir de 02_tienda.guardia.
+// Permisos de 'Hospital': generado por el traductor permiso a partir de 03_hospital.permiso.
 // Uso en Express: const { exigir } = require('./este-archivo');
 //                 app.post('/ruta', exigir('crear', 'recurso'), manejador);
 
 const PERMISOS = {
-  'invitado': { hereda: null, puede: { productos: ['ver'] } },
-  'cliente': { hereda: 'invitado', puede: { 'pedidos': ['crear', 'ver'] } },
-  admin: { hereda: 'cliente', puede: { productos: ['todo'], pedidos: ['borrar'] } },
-  'pasante': { hereda: 'admin', puede: {}, noPuede: { productos: ['borrar'], pedidos: ['borrar'] } },
+  'paciente': { hereda: null, puede: { turnos: ['ver', 'crear', 'borrar'] } },
+  'recepcionista': { hereda: null, puede: { turnos: ['todo'], pacientes: ['ver', 'crear'] } },
+  enfermero: { hereda: 'recepcionista', puede: { 'historias clínicas': ['ver'] } },
+  'médico': { hereda: 'enfermero', puede: { 'historias clínicas': ['crear', 'editar'], 'recetas': ['crear'] } },
+  'residente': { hereda: 'médico', puede: {}, noPuede: { recetas: ['crear'] } },
+  director: { hereda: 'médico', puede: { pacientes: ['todo'], estadísticas: ['ver'] } },
 };
 
 function contiene(lista, accion) {

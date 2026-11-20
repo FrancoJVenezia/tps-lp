@@ -1,11 +1,11 @@
-"""Analizador sintáctico de guardia (ply.yacc) + controles semánticos.
+"""Analizador sintáctico del lenguaje permiso (ply.yacc) + controles semánticos.
 
 El parser no genera JavaScript: arma un árbol con los roles y sus permisos (diccionarios de Python)
 y verifica las reglas semánticas. La generación del código la hace después el agente (LLM),
 recorriendo ese árbol, solo si no hubo ningún error.
 """
 import ply.yacc as yacc
-from lexer_guardia import LexerGuardia, tokens as _tokens_lexer
+from lexer_permiso import LexerPermiso, tokens as _tokens_lexer
 
 # SALTO es interno del lexer: el parser nunca lo recibe.
 tokens = [t for t in _tokens_lexer if t != 'SALTO']
@@ -13,7 +13,7 @@ tokens = [t for t in _tokens_lexer if t != 'SALTO']
 ACCIONES = ['ver', 'crear', 'editar', 'borrar']   # 'todo' equivale a las cuatro
 
 
-class ErrorGuardia(Exception):
+class ErrorPermiso(Exception):
     """Error de traducción. tipo: 'léxico', 'sintáctico' o 'semántico'. errores: lista de (línea, mensaje)."""
 
     def __init__(self, tipo, errores):
@@ -206,7 +206,7 @@ def recursos_de(arbol):
 
 
 def decidir(por_nombre, nombre, accion, recurso):
-    """Regla de guardia: se recorre la cadena de herencia desde el rol hacia arriba y decide el primer rol que
+    """Regla de permiso: se recorre la cadena de herencia desde el rol hacia arriba y decide el primer rol que
     diga algo sobre esa acción y ese recurso. Dentro de un rol, la excepción ('no puede') gana sobre el permiso."""
     while nombre is not None:
         rol = por_nombre.get(nombre)
@@ -239,11 +239,11 @@ def tabla_esperada(arbol):
 # ---------------------------------------------------------------- punto de entrada
 
 parser = yacc.yacc(debug=False, write_tables=False)
-_lexer = LexerGuardia()
+_lexer = LexerPermiso()
 
 
 def analizar(texto):
-    """Analiza un programa guardia. Devuelve el árbol de roles o lanza ErrorGuardia."""
+    """Analiza un programa en permiso. Devuelve el árbol de roles o lanza ErrorPermiso."""
     _errores_sintacticos.clear()
     _errores_semanticos.clear()
     arbol = None
@@ -253,9 +253,9 @@ def analizar(texto):
         pass
     # Se informa primero el error de la etapa más temprana.
     if _lexer.errores:
-        raise ErrorGuardia('léxico', [(l, f'{m} (columna {c})') for l, c, m in _lexer.errores])
+        raise ErrorPermiso('léxico', [(l, f'{m} (columna {c})') for l, c, m in _lexer.errores])
     if _errores_sintacticos:
-        raise ErrorGuardia('sintáctico', list(_errores_sintacticos))
+        raise ErrorPermiso('sintáctico', list(_errores_sintacticos))
     if _errores_semanticos:
-        raise ErrorGuardia('semántico', sorted(_errores_semanticos, key=lambda e: e[0]))
+        raise ErrorPermiso('semántico', sorted(_errores_semanticos, key=lambda e: e[0]))
     return arbol
